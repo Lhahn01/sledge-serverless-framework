@@ -85,7 +85,7 @@ CFLAGS += -DUSE_MEM_VM
 # Preprocessor
 LDFLAGS += -Wl,--export-dynamic -ldl -lm
 LDFLAGS += -Lthirdparty/dist/lib/
-INCLUDES += -Iinclude/ -Ithirdparty/dist/include/
+INCLUDES += -Iinclude/ -Ithirdparty/dist/include/ -I../awsm/runtime/libc/wasi/include/
 
 # CFILES
 CFILES += src/*.c
