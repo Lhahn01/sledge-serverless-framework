@@ -1,8 +1,6 @@
 #include <assert.h>
 #include "types.h"
 
-#ifdef USE_MEM_VM
-
 uint32_t
 instruction_memory_size()
 {
@@ -168,6 +166,3 @@ get_function_from_table(uint32_t idx, uint32_t type_id)
 
 	return f.func_pointer;
 }
-#else
-#error "Incorrect memory module!"
-#endif
