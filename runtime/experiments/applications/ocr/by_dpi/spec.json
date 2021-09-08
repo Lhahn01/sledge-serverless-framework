@@ -1,6 +1,6 @@
 {
 	"name": "gocr_72_dpi",
-	"path": "gocr_wasm.so",
+	"path": "gocr.so",
 	"port": 10000,
 	"expected-execution-us": 5000,
 	"relative-deadline-us": 36000,
@@ -10,7 +10,7 @@
 },
 {
 	"name": "gocr_108_dpi",
-	"path": "gocr_wasm.so",
+	"path": "gocr.so",
 	"port": 10001,
 	"expected-execution-us": 5000,
 	"relative-deadline-us": 36000,
@@ -20,7 +20,7 @@
 },
 {
 	"name": "gocr_144_dpi",
-	"path": "gocr_wasm.so",
+	"path": "gocr.so",
 	"port": 10002,
 	"expected-execution-us": 5000,
 	"relative-deadline-us": 36000,
