@@ -9,7 +9,7 @@ build: ck jsmn http-parser awsm-wasi
 
 # Concurrency Kit
 .PHONY: ck
-ck: ck/configure ck/Makefile
+ck:
 	mkdir -p ${DIST_PREFIX}
 	cd ck; ./configure --cores=$(shell getconf _NPROCESSORS_CONF) --prefix=${DIST_PREFIX}
 	make -C ck all
