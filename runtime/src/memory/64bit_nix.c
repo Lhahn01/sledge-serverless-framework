@@ -6,24 +6,36 @@
 
 #include <sys/mman.h>
 
-void
+/**
+ * @brief Expand the linear memory of the active WebAssembly sandbox by a single page
+ *
+ * @return int
+ */
+int
 expand_memory(void)
 {
 	struct sandbox *sandbox = current_sandbox_get();
 
 	assert(sandbox->state == SANDBOX_RUNNING);
+	assert(local_sandbox_context_cache.memory.size % WASM_PAGE_SIZE == 0);
 
-	// TODO: Refactor to return RC signifying out-of-mem to caller. Issue #96.
-	if (local_sandbox_context_cache.memory.size + WASM_PAGE_SIZE >= local_sandbox_context_cache.memory.max)
-		panic("expand_memory - Out of Memory!. %u out of %lu\n", local_sandbox_context_cache.memory.size,
-		      local_sandbox_context_cache.memory.max);
+	/* Return -1 if we've hit the linear memory max */
+	if (unlikely(local_sandbox_context_cache.memory.size + WASM_PAGE_SIZE
+	             >= local_sandbox_context_cache.memory.max)) {
+		debuglog("expand_memory - Out of Memory!. %u out of %lu\n", local_sandbox_context_cache.memory.size,
+		         local_sandbox_context_cache.memory.max);
+		return -1;
+	}
 
 	// Remap the relevant wasm page to readable
 	char *mem_as_chars = local_sandbox_context_cache.memory.start;
 	char *page_address = &mem_as_chars[local_sandbox_context_cache.memory.size];
 	void *map_result   = mmap(page_address, WASM_PAGE_SIZE, PROT_READ | PROT_WRITE,
                                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
-	if (map_result == MAP_FAILED) panic("Mapping of new memory failed");
+	if (map_result == MAP_FAILED) {
+		debuglog("Mapping of new memory failed");
+		return -1;
+	}
 
 	local_sandbox_context_cache.memory.size += WASM_PAGE_SIZE;
 
@@ -38,6 +50,7 @@ expand_memory(void)
 
 	// local_sandbox_context_cache is "forked state", so update authoritative member
 	sandbox->memory.size = local_sandbox_context_cache.memory.size;
+	return 0;
 }
 
 /**
@@ -59,13 +72,25 @@ get_memory_ptr(uint32_t offset, uint32_t length)
 	return address;
 }
 
-uint32_t
+/**
+ * @brief Stub that implements the WebAssembly memory.grow instruction
+ *
+ * @param count number of pages to grow the WebAssembly linear memory by
+ * @return The previous size of the linear memory in pages or -1 if enough memory cannot be allocated
+ */
+int32_t
 instruction_memory_grow(uint32_t count)
 {
-	uint32_t prev_size = local_sandbox_context_cache.memory.size / WASM_PAGE_SIZE;
-	for (int i = 0; i < count; i++) { expand_memory(); }
+	int rc = local_sandbox_context_cache.memory.size / WASM_PAGE_SIZE;
 
-	return prev_size;
+	for (int i = 0; i < count; i++) {
+		if (unlikely(expand_memory() != 0)) {
+			rc = -1;
+			break;
+		}
+	}
+
+	return rc;
 }
 
 /*
