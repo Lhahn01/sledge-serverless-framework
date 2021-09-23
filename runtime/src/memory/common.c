@@ -5,14 +5,23 @@
 #include "types.h"
 
 /* Region initialization helper function */
+/**
+ * @brief Initialize a region, copying it into linear memory
+ *
+ * This is a stub called by *.so modules
+ *
+ * @param dest_offset target offset in linear memory
+ * @param n the size of the region
+ * @param src address of region to copy
+ */
 EXPORT void
-initialize_region(uint32_t offset, uint32_t data_count, char *data)
+initialize_region(uint32_t dest_offset, uint32_t n, char src[n])
 {
-	assert(local_sandbox_context_cache.memory.size >= data_count);
-	assert(offset < local_sandbox_context_cache.memory.size - data_count);
+	assert(local_sandbox_context_cache.memory.size >= n);
+	assert(dest_offset < local_sandbox_context_cache.memory.size - n);
 
 	/* FIXME: Hack around segmented and unsegmented access Issue #104 */
-	memcpy(get_memory_ptr_for_runtime(offset, data_count), data, data_count);
+	memcpy(get_memory_ptr(dest_offset, n), src, n);
 }
 
 void
